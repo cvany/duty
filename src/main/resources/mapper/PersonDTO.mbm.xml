@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.pds.duty.mapper.IPersonMapper">
+
+    <resultMap id="PersonMap" type="com.pds.duty.domain.dto.PersonDTO" extends="Entity.baseMap">
+        <id column="id" property="id"/>
+        <result property="name" column="name"/>
+        <result property="groupId" column="groupId"/>
+    </resultMap>
+
+    <sql id="columns">
+        <![CDATA[
+        id, name, groupId
+        ]]>
+    </sql>
+
+    <sql id="where">
+        <where>
+            1=1
+            <if test="@Ognl@isNotEmpty(id)">
+                AND id = #{id}
+            </if>
+            <if test="@Ognl@isNotEmpty(name)">
+                AND name = #{name}
+            </if>
+            <if test="@Ognl@isNotEmpty(groupId)">
+                AND groupId = #{groupId}
+            </if>
+        </where>
+    </sql>
+
+    <select id="getById" resultMap="PersonMap">
+        SELECT
+        <include refid="columns"/>
+        <![CDATA[
+            FROM
+                person
+            WHERE
+                id = #{id}
+        ]]>
+    </select>
+
+    <select id="search" resultMap="PersonMap">
+        SELECT
+        <if test="dialect == 'mysql'">SQL_CALC_FOUND_ROWS</if>
+        <include refid="columns"/>
+        FROM
+        person
+        <include refid="where"/>
+        <if test="@Ognl@isNotEmpty(sort)">
+            ORDER BY ${sort}
+        </if>
+        <if test="start gt -1 and end lt 10000">
+            LIMIT #{start}, #{end}
+            <if test="dialect == 'mysql'">; SELECT FOUND_ROWS() into @count</if>
+        </if>
+    </select>
+
+    <select id="searchOne" resultMap="PersonMap">
+        SELECT
+        0.id, 0.name, o.groupId
+        FROM `person` o
+        LEFT JOIN `group` g ON o.groupId=g.id
+    </select>
+
+    <select id="getCount" resultType="long">
+        <![CDATA[
+            SELECT
+                count(1)
+            FROM
+                sims_pudo
+        ]]>
+        <include refid="where"/>
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+
+        INSERT INTO person
+        <trim prefix=" ( " suffix=" ) " suffixOverrides=",">
+            <if test="name != null">
+                name,
+            </if>
+            <if test="groupId != null">
+                groupId
+            </if>
+        </trim>
+        <trim prefix=" values ( " suffix=" ) " suffixOverrides=",">
+            <if test="name != null">
+                <![CDATA[#{name}]]>,
+            </if>
+            <if test="groupId != null">
+                <![CDATA[#{groupId}]]>
+            </if>
+        </trim>
+
+    </insert>
+
+    <insert id="saveBatch">
+        <![CDATA[
+            INSERT INTO person (
+                name,
+                groupId
+            ) VALUES
+        ]]>
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.name},#{item.groupId})
+        </foreach>
+    </insert>
+
+    <update id="update">
+        UPDATE
+        person
+        <set>
+            <![CDATA[ name = #{name} ]]>,
+            <![CDATA[ groupId = #{groupId} ]]>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <update id="updatePart">
+        UPDATE
+        person
+        <set>
+            <if test="name != null">
+                <![CDATA[ name = #{name} ]]>,
+            </if>
+            <if test="groupId != null">
+                <![CDATA[ groupId = #{groupId} ]]>
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <delete id="deleteByPk">
+        <![CDATA[
+            DELETE
+            FROM
+                person
+            WHERE
+                id = #{id} 
+        ]]>
+    </delete>
+
+    <delete id="deleteBatchByPks">
+        <![CDATA[
+            DELETE
+            FROM
+                person
+            WHERE
+                id IN
+        ]]>
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+    </delete>
+
+</mapper>
+

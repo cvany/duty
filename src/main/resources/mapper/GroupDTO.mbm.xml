@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.pds.duty.mapper.IGroupMapper">
+
+    <resultMap id="GroupMap" type="com.pds.duty.domain.dto.GroupDTO" extends="Entity.baseMap">
+        <id column="id" property="id"/>
+        <result property="name" column="name"/>
+        <collection property="person" ofType="com.pds.duty.domain.dto.PersonDTO">
+            <id column="id" property="id"/>
+            <result property="name" column="name"/>
+            <result property="groupId" column="groupId"/>
+        </collection>
+    </resultMap>
+
+    <sql id="columns">
+        <![CDATA[
+        id, name
+        ]]>
+    </sql>
+
+    <sql id="where">
+        <where>
+            1=1
+            <if test="@Ognl@isNotEmpty(id)">
+                AND id = #{id}
+            </if>
+            <if test="@Ognl@isNotEmpty(name)">
+                AND name = #{name}
+            </if>
+        </where>
+    </sql>
+
+    <select id="getById" resultMap="GroupMap">
+        SELECT
+        <include refid="columns"/>
+        <![CDATA[
+            FROM
+                `group`
+            WHERE
+                id = #{id}
+        ]]>
+    </select>
+
+</mapper>
+
